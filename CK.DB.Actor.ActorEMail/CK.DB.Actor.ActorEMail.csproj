@@ -5,7 +5,7 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.DB.Actor" Version="24.1.1--0001-develop" />
+    <PackageReference Include="CK.DB.Actor" Version="24.1.1--0002-develop" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Res\*.sql" />
