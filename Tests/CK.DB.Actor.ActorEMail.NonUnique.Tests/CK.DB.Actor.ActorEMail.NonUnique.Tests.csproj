@@ -8,7 +8,7 @@
     <Compile Include="..\CK.DB.Actor.ActorEMail.Tests\ActorEMailTests.cs" Link="ActorEMailTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CK.DB.Actor.Tests" Version="28.0.4" />
+    <PackageReference Include="CK.DB.Actor.Tests" Version="28.0.5" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="6.2.0" />
   </ItemGroup>
