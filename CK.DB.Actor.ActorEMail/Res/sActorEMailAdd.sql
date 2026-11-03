@@ -10,6 +10,11 @@
 --   - if no unique key is defined (ie. the UK_CK_tActorEMail_EMail constraint has been dropped),
 --     the same email can be associated to different users.
 --
+-- The primary email is validated as soon as the actor has a validated email:
+--   - requesting an email that is (or ends) not validated to be the primary one while the actor has another
+--     validated email is an error ('EMail.PrimaryMustBeValidated'): validate it first (or with @Validate = 1);
+--   - un-validating (@Validate = 0) the primary email elects the most recently validated one, if any.
+--
 create procedure CK.sActorEMailAdd 
 (
 	@ActorId int,
@@ -50,6 +55,20 @@ begin
 	    select @ExistingPrimaryEMail = EMail from CK.tActorEMail where ActorId = @UserOrGroupId and IsPrimary = 1
 	    declare @NewPrimaryEMail nvarchar(255);
 	    if @ExistingPrimaryEMail is null set @IsPrimary = 1;
+	    else if @IsPrimary = 1
+	    begin
+		    -- An email that is not validated cannot become the primary one while a validated email exists.
+		    declare @IsValidated bit = case when @Validate = 1 then 1
+		                                    when @Validate = 0 then 0
+		                                    else (select case when ValTime > '0001-01-01' then 1 else 0 end
+		                                            from CK.tActorEMail where ActorId = @UserOrGroupId and EMail = @EMail)
+		                               end;
+		    if isnull( @IsValidated, 0 ) = 0
+		       and exists( select 1 from CK.tActorEMail where ActorId = @UserOrGroupId and EMail <> @EMail and ValTime > '0001-01-01' )
+		    begin
+			    ;throw 50000, 'EMail.PrimaryMustBeValidated', 1;
+		    end
+	    end
 	    if @IsPrimary = 1 set @NewPrimaryEMail = @EMail;
 	    else set @NewPrimaryEMail = @ExistingPrimaryEMail;
 
@@ -77,6 +96,13 @@ begin
 	    if @NewPrimaryEMail is null
 	    begin
 		    select top 1 @NewPrimaryEMail = EMail from CK.tActorEMail where ActorId = @UserOrGroupId order by ValTime desc;
+	    end
+	    -- The primary is validated when a validated email exists (the primary may just have been un-validated).
+	    if not exists( select 1 from CK.tActorEMail where ActorId = @UserOrGroupId and EMail = @NewPrimaryEMail and ValTime > '0001-01-01' )
+	    begin
+		    select top 1 @NewPrimaryEMail = EMail from CK.tActorEMail
+		        where ActorId = @UserOrGroupId and ValTime > '0001-01-01'
+		        order by ValTime desc;
 	    end
 
 	    if @NewPrimaryEMail is not null

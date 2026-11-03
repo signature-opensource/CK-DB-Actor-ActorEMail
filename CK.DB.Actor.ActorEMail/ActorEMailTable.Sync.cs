@@ -12,6 +12,12 @@ public abstract partial class ActorEMailTable : SqlTable
     /// When avoidAmbiguousEMail is false, the behavior depends on the unicity of the EMail column: if the unique key exists (the default),
     /// a SqlException duplicate key error will be raised but if no unique key is defined (ie. the UK_CK_tActorEMail_EMail constraint has
     /// been dropped), the same email can be associated to different users.
+    /// <para>
+    /// The primary email is validated as soon as the actor has a validated email: requesting an email that is (or ends)
+    /// not validated to be the primary one while the actor has another validated email is an error
+    /// ("EMail.PrimaryMustBeValidated": validate it first, or with <paramref name="validate"/> true), and un-validating the
+    /// primary email elects the most recently validated one, if any.
+    /// </para>
     /// </summary>
     /// <param name="ctx">The call context to use.</param>
     /// <param name="actorId">The acting actor identifier.</param>
